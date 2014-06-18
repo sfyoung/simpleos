@@ -9,7 +9,7 @@
 
 #include <boot.h>
 	.code32
-	.globl start, _mbh
+	.globl start, _mbh, ok_done
 .section .setup_gdt
 	.balign 8
 _mbh:
@@ -79,11 +79,6 @@ gdt:
 	.byte 0xff, 0xff, 0x0, 0x0, 0x0, 0x92, 0xcf, 0x40
 	/*data selector 0x10*/
 gdt_end:
-/*
-start:
-	lgdt gdtr
-	jmp $0x08, $_start*/
-
 
 	.comm stack, STACK_SIZE
 	.text
@@ -98,6 +93,9 @@ gdtReady:
 
 	jmp $0x08, $call_main
 
+ok_done:
+	ret
+
 call_main:/*ok, call main.*/
 	movl $(stack + STACK_SIZE), %esp
 
@@ -109,5 +107,5 @@ call_main:/*ok, call main.*/
 
 	call main
 
-loop: hlt
+loop:
 	jmp loop
