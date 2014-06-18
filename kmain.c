@@ -2,22 +2,25 @@
  * kmain.c
  * The first entry function after boot.
  * ***************************************************************************/
-struct gdt_entry{
-	long long entry;
-	/*I know it is bad, but here is just for simplicity*/
-}__attribute__((packed));
-
-struct gdt_pointer{
-	unsigned short limit;
-	unsigned int base;
-}__attribute__((packed));
+#include <time.h>
+#include <time_start.h>
+#include <printk.h>
+#include <gdt.h>
 
 unsigned int kpdir[1024] __attribute__((aligned(4096)));
 unsigned int kptab[1024] __attribute__((aligned(4096)));
-struct gdt_entry gdt[3];
-struct gdt_pointer gp;
+struct gdt_e ge[3];
+struct gdt_p gdt_;
 
-void cls(void);
+void cls(void) {
+	char *video = (char *) 0xc00b8000;
+	int i;
+	for (i = 0; i < 80*24; i++) {
+		video[2*i] = '\0';
+		video[2*i + 1] = 0x7;
+	}
+}
+
 void paging()
 {
 	int i;
@@ -40,52 +43,19 @@ void paging()
 	return;
 }
 
-void gdt_st()
-	//After mapping the page, setup the base of gdt to 0x0
-{
-	gdt[0].entry = 0x0000000000000000;
-	gdt[1].entry = 0x00cf9a000000ffff;
-	gdt[2].entry = 0x00cf92000000ffff;
-
-	gp.limit = sizeof(struct gdt_entry) * 3 - 1;
-	gp.base = (unsigned int)&gdt;
-
-	asm volatile (
-					"lgdt (%0)\n"
-					"mov $0x10, %%eax\n"
-					"mov %%ax, %%ds\n"
-					"mov %%ax, %%es\n"
-					"mov %%ax, %%fs\n"
-					"mov %%ax, %%gs\n"
-					"mov %%ax, %%ss\n"
-					"jmp $0x08, $ok_done"::"m"(gp));
-	//if not jmp, i think it's still ok, but can't show hello world message in VirtualBox. I have not found the reason.
-}
-
 int main()
 {
 	paging();
-	gdt_st();
+	gdt_st(ge, &gdt_);
 	char* video = (char *) 0xc00b8000;
 	
 	cls();
-	/* "Hello, world!" */
 	char* string = "Booting Simple OS...";
-	int i = 0;
-	for (i = 0; i < 20; i++) {
-		video[2*i] = string[i];
-		video[2*i + 1] = 0x7;
-	}
+	int v = 1;
+	printk("%s:v %d", string, v);
 
+	struct tm time;
+	time = time_start();
+	printk("Time is %d:%d\n", time.tm_hour, time.tm_min);
 	return 0;
-}
-
-void
-cls(void) {
-	char *video = (char *) 0xc00b8000;
-	int i;
-	for (i = 0; i < 80*24; i++) {
-		video[2*i] = ' ';
-		video[2*i + 1] = 0x7;
-	}
 }

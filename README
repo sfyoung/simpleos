@@ -10,7 +10,7 @@ mkdir -p iso/boot/grub
 set timeout=5
 set default=5
 
-menuentry "Simple Os" {
+menuentry "My Os" {
 		multiboot2 /boot/kernel
 }
 EOF
@@ -18,7 +18,7 @@ Then you create a file iso/boot/grub/grub.cfg that contain follow message:
 set timeout=5
 set default=5
 
-menuentry "Simple Os" {
+menuentry "My Os" {
 	        multiboot2 /boot/kernel
 }
 5.make
