@@ -1,10 +1,11 @@
 CC = gcc
 LD = ld
 
-CFLAGS = -m32 -g -O -I. -fno-builtin #-Wl,l,-n,-z,max-page-size=0x1000 -nostartfiles -nodefaultlibs
+CFLAGS = -m32 -g -O -I. -fno-builtin -Iinclude #-Wl,l,-n,-z,max-page-size=0x1000 -nostartfiles -nodefaultlibs
 
 ISO := os.iso
-OBJS = boot.o kmain.o 
+LIBS := lib/lib.o
+OBJS = boot.o kmain.o $(LIBS)
 KERNEL = kernel
 .PHONY all : $(ISO)
 
@@ -15,7 +16,10 @@ $(ISO): $(KERNEL)
 $(KERNEL): $(OBJS) vmkernel.lds
 #	$(LD) -melf_i386 -o $@ $(OBJS) -Ttext 0x100000 --entry=start
 	$(LD) -melf_i386 -o $@ $(OBJS) -Tvmkernel.lds
+#	$(CC) $(CFLAGS) -o $@ $(OBJS) -Tvmkernel.lds
 
+$(LIBS):
+	(cd lib;make)
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
 %.o: %.c
@@ -24,3 +28,4 @@ $(KERNEL): $(OBJS) vmkernel.lds
 .PHONY: clean
 clean:
 	rm -f $(OBJS) $(KERNEL) iso/boot/$(KERNEL) $(ISO)
+	(cd lib;make clean)
