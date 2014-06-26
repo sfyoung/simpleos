@@ -1,15 +1,17 @@
 #include <printk.h>
 #include <stdarg.h>
 
-static void itoa(char *buf, int num)
+static int itoa(char *buf, int num)
 {
 	char *str = buf;
 	char q[20];
 	char *p = q;
 	int n = num;
+	int size = 0;
 	if (n < 0) {
 		*str++ = '-';
 		n = -n;
+		size++;
 	}
 
 	*p++ = 0;
@@ -19,9 +21,12 @@ static void itoa(char *buf, int num)
 
 	while(*(--p)) {
 		*str++ = *p;
+		size++;
 	}
 
 	*str = 0;
+
+	return size;
 }
 
 static void putchar(char c, int x, int y)
@@ -31,13 +36,15 @@ static void putchar(char c, int x, int y)
 	*v = 0x7;
 }
 
-static void puts(char *s, int x, int y)
+static int puts(char *s, int x, int y)
 {
 	char c;
+	int size = x;
 	while(c = *s++){
 		putchar(c, x, y);
 		x++;
 	}
+	return x - size;
 }
 
 int printk(const char *format,...)
@@ -48,6 +55,7 @@ int printk(const char *format,...)
 	char buf[20];
 	va_list vl;
 	int val, x, y, i = 23;/* 0<=x<=80,0<=y<=24 */
+	int size;
 
 	char * v = (char *)0xb8000 + 80*i*2;
 	/* Suppose that, text is left align. */
@@ -71,14 +79,14 @@ int printk(const char *format,...)
 			switch(c) {
 				case 'd':
 					val = va_arg(vl, int);
-					itoa(buf, val);
+					size = itoa(buf, val);
 					puts(buf, x, y);
-					x += sizeof(buf);
+					x += size;
 					break;
 				case 's':
 					p = va_arg(vl, char*);
-					puts(p, x, y);
-					x += sizeof(p);
+					size = puts(p, x, y);
+					x += size;
 					break;
 			}
 		}
