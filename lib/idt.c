@@ -10,8 +10,7 @@ void irq_handler()
 {
 	outb(0x20, 0x20);
 	t++;
-	printk("irq0: %d", t);
-	printk("irq0: %d", t);
+	printk("irq0: %d\n", t);
 }
 
 static idt_st_entry(idt_e *entry, unsigned int addr, unsigned short se, unsigned char flag)

@@ -1,5 +1,32 @@
+/*
+ * Young
+ * printk.c: kernel printk function.
+ */
+
 #include <printk.h>
-#include <stdarg.h>
+int cursor_x, cursor_y;	/* cursor position. 0<=cursor_x<80, 0<=cursor_y < 25. */
+
+void cls(void) {
+	char *video = (char *) 0xc00b8000;
+	int i;
+	for (i = 0; i < 80*24; i++) {
+		video[2*i] = '\0';
+		video[2*i + 1] = 0x7;
+	}
+	cursor_x = 0;
+	cursor_y = 0;
+	set_cursor();
+}
+
+void set_cursor()
+{
+	unsigned short l = cursor_y * 80 + cursor_x;
+
+	outb(14, 0x3D4);
+	outb((unsigned char)((l >> 8) & 0xFF), 0x3D5);
+	outb(15, 0x3D4);
+	outb((unsigned char)(l & 0xFF), 0x3D5);
+}
 
 static int itoa(char *buf, int num)
 {
@@ -29,22 +56,51 @@ static int itoa(char *buf, int num)
 	return size;
 }
 
-static void putchar(char c, int x, int y)
+static void scroll()
 {
-	char *v = (char *) 0xb8000 + 2*(80*y + x);
-	*v++ = c;
-	*v = 0x7;
+	char *v = (char *) 0xb8000;
+	int i = 0;
+	for (i = 0; i < 24 * 80 * 2; i++) {
+		v[i] = v[i + 160];
+	}
+	cursor_x = 0;
+	cursor_y = 24;
 }
 
-static int puts(char *s, int x, int y)
+
+static void putchar(char c)
+{
+	if (c == '\n') {
+		cursor_x = 0;
+		cursor_y++;
+	} else {
+		char *v = (char *) 0xb8000 + 2*(80*cursor_y + cursor_x);
+		*v++ = c;
+		*v = 0x7;
+		cursor_x++;
+	}
+
+	if (cursor_x > 79) {
+		cursor_x = 0;
+		cursor_y++;
+	}
+
+	if(cursor_y > 24) {
+		scroll();
+	}
+
+	set_cursor();
+}
+
+static int puts(char *s)
 {
 	char c;
-	int size = x;
+	int size = 0;
 	while(c = *s++){
-		putchar(c, x, y);
-		x++;
+		putchar(c);
+		size++;
 	}
-	return x - size;
+	return size;
 }
 
 int printk(const char *format,...)
@@ -54,39 +110,26 @@ int printk(const char *format,...)
 	char c, *p;
 	char buf[20];
 	va_list vl;
-	int val, x, y, i = 23;/* 0<=x<=80,0<=y<=24 */
-	int size;
-
-	char * v = (char *)0xb8000 + 80*i*2;
-	/* Suppose that, text is left align. */
-	for (; i >= 0; i--) {
-		if (*v=='\0')
-			v = (char *) 0xb8000 + 80*(i - 1)*2;
-		else {
-			//v = (char *) 0xb8000 + 80*[(i + 1)%25];
-			break;
-		}
-	}
-	y = (i + 1) % 24;/* Now, the right line has been found. */
+	int val;
 
 	/* output */
 	va_start(vl, format);
 	while(c = *arg++){
-		if ( c != '%')
-			putchar(c, x++, y);
+		if ( c != '%') {
+			putchar(c);
+			count++;
+		}
 		else{
 			c = *arg++;
 			switch(c) {
 				case 'd':
 					val = va_arg(vl, int);
-					size = itoa(buf, val);
-					puts(buf, x, y);
-					x += size;
+					count += itoa(buf, val);
+					puts(buf);
 					break;
 				case 's':
 					p = va_arg(vl, char*);
-					size = puts(p, x, y);
-					x += size;
+					count += puts(p);
 					break;
 			}
 		}

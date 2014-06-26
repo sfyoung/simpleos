@@ -16,14 +16,6 @@ struct gdt_p gdt_;
 idt_e idt_table[256];
 idt_p idtr;
 
-void cls(void) {
-	char *video = (char *) 0xc00b8000;
-	int i;
-	for (i = 0; i < 80*24; i++) {
-		video[2*i] = '\0';
-		video[2*i + 1] = 0x7;
-	}
-}
 
 void paging()
 {
@@ -59,7 +51,7 @@ int main()
 	cls();
 	char* string = "Booting Simple OS...";
 	int v = 1;
-	printk("%s:v %d", string, v);
+	printk("%s:v %d\n", string, v);
 
 	struct tm time;
 	time = time_start();
