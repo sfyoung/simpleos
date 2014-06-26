@@ -7,11 +7,12 @@ ISO := os.iso
 LIBS := lib/lib.o
 OBJS = boot.o kmain.o $(LIBS)
 KERNEL = kernel
+GRUB_MKRESCUE := $(shell if [ `grep -c -i ubuntu /etc/issue` -eq 0 ]; then echo "grub2-mkrescue"; else echo "grub-mkrescue"; fi;)
 .PHONY all : $(ISO)
 
 $(ISO): $(KERNEL)
 	cp $(KERNEL) iso/boot
-	grub2-mkrescue -o $@ iso
+	$(GRUB_MKRESCUE) -o $@ iso
 
 $(KERNEL): $(OBJS) vmkernel.lds
 #	$(LD) -melf_i386 -o $@ $(OBJS) -Ttext 0x100000 --entry=start

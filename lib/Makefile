@@ -1,10 +1,10 @@
 CC = gcc
 LD = ld
 
-CFLAGS = -m32 -g -O -I. -fno-builtin -I../include #-Wl,l,-n,-z,max-page-size=0x1000 -nostartfiles -nodefaultlibs
+CFLAGS = -m32 -g -O -I. -fno-builtin -fno-stack-protector -I../include #-Wl,l,-n,-z,max-page-size=0x1000 -nostartfiles -nodefaultlibs
 
 LIB := lib.o
-OBJS := io.o time_start.o printk.o gdt.o
+OBJS := io.o time_start.o printk.o gdt.o idt.o isr.o
 
 .PHONY all : $(LIB)
 
@@ -15,6 +15,12 @@ io.o: io.c ../include/io.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 gdt.o: gdt.c ../include/gdt.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+idt.o: idt.c ../include/idt.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+isr.o: isr.s
 	$(CC) $(CFLAGS) -c $< -o $@
 
 printk.o: printk.c ../include/printk.h

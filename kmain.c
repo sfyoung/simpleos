@@ -2,24 +2,20 @@
  * kmain.c
  * The first entry function after boot.
  * ***************************************************************************/
+#include <io.h>
 #include <time.h>
 #include <time_start.h>
 #include <printk.h>
 #include <gdt.h>
+#include <idt.h>
 
 unsigned int kpdir[1024] __attribute__((aligned(4096)));
 unsigned int kptab[1024] __attribute__((aligned(4096)));
 struct gdt_e ge[3];
 struct gdt_p gdt_;
+idt_e idt_table[256];
+idt_p idtr;
 
-void cls(void) {
-	char *video = (char *) 0xc00b8000;
-	int i;
-	for (i = 0; i < 80*24; i++) {
-		video[2*i] = '\0';
-		video[2*i + 1] = 0x7;
-	}
-}
 
 void paging()
 {
@@ -47,15 +43,19 @@ int main()
 {
 	paging();
 	gdt_st(ge, &gdt_);
+	idt_st();
+	asm volatile("sti");
+	timer_interrupt();
 	char* video = (char *) 0xc00b8000;
 	
 	cls();
 	char* string = "Booting Simple OS...";
 	int v = 1;
-	printk("%s:v %d", string, v);
+	printk("%s:v %d\n", string, v);
 
 	struct tm time;
 	time = time_start();
 	printk("Time is %d:%d\n", time.tm_hour, time.tm_min);
+
 	return 0;
 }
