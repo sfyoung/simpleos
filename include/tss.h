@@ -1,9 +1,12 @@
 /******************************************************************************
  * Young.
+ * tss.h
  * This header give the struct of task state segment. The format of tss struct
  * is fixed. You can find the struct in Volum3 3 Chapter 7 of Intel 64 and IA-32
  * Architectures Software Developer's Manual, or search it in the website like
- * Wiki, OSdev, roll your own os tutorials of SIGOps or Linux kernel.
+ * Wiki, OSdev, roll your own os tutorials of SIGOps or Linux kernel 0.11.
+ * I know that current linux kernel implement software task switching. Here is
+ * just for test.
  *****************************************************************************/
 
 #ifndef _TSS_H_

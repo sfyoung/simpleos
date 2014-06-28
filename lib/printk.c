@@ -6,6 +6,17 @@
 #include <printk.h>
 int cursor_x, cursor_y;	/* cursor position. 0<=cursor_x<80, 0<=cursor_y < 25. */
 
+static void set_cursor()
+{
+	unsigned short l = cursor_y * 80 + cursor_x;
+
+	outb(14, 0x3D4);
+	outb((unsigned char)((l >> 8) & 0xFF), 0x3D5);
+	outb(15, 0x3D4);
+	outb((unsigned char)(l & 0xFF), 0x3D5);
+}
+
+
 void cls(void) {
 	char *video = (char *) 0xc00b8000;
 	int i;
@@ -16,16 +27,6 @@ void cls(void) {
 	cursor_x = 0;
 	cursor_y = 0;
 	set_cursor();
-}
-
-void set_cursor()
-{
-	unsigned short l = cursor_y * 80 + cursor_x;
-
-	outb(14, 0x3D4);
-	outb((unsigned char)((l >> 8) & 0xFF), 0x3D5);
-	outb(15, 0x3D4);
-	outb((unsigned char)(l & 0xFF), 0x3D5);
 }
 
 static int itoa(char *buf, int num)

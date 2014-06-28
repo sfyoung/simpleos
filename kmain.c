@@ -8,6 +8,7 @@
 #include <printk.h>
 #include <gdt.h>
 #include <idt.h>
+#include <task.h>
 
 unsigned int kpdir[1024] __attribute__((aligned(4096)));
 unsigned int kptab[1024] __attribute__((aligned(4096)));
@@ -44,8 +45,6 @@ int main()
 	paging();
 	gdt_st(ge, &gdt_);
 	idt_st();
-	asm volatile("sti");
-	timer_interrupt();
 	char* video = (char *) 0xc00b8000;
 	
 	cls();
@@ -56,6 +55,10 @@ int main()
 	struct tm time;
 	time = time_start();
 	printk("Time is %d:%d\n", time.tm_hour, time.tm_min);
+
+	asm volatile("sti");
+	task();
+	timer_interrupt();
 
 	return 0;
 }

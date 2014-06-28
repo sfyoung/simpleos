@@ -1,5 +1,6 @@
 #include <io.h>
 #include <idt.h>
+#include <task.h>
 
 extern idt_e idt_table[256];
 extern idt_p idtr;
@@ -10,7 +11,7 @@ void irq_handler()
 {
 	outb(0x20, 0x20);
 	t++;
-	printk("irq0: %d\n", t);
+	scheduler();
 }
 
 static idt_st_entry(idt_e *entry, unsigned int addr, unsigned short se, unsigned char flag)

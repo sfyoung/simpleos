@@ -4,7 +4,7 @@ LD = ld
 CFLAGS = -m32 -g -O -I. -fno-builtin -fno-stack-protector -I../include #-Wl,l,-n,-z,max-page-size=0x1000 -nostartfiles -nodefaultlibs
 
 LIB := lib.o
-OBJS := io.o time_start.o printk.o gdt.o idt.o isr.o
+OBJS := io.o time_start.o printk.o gdt.o idt.o isr.o task.o
 
 .PHONY all : $(LIB)
 
@@ -27,6 +27,9 @@ printk.o: printk.c ../include/printk.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 time_start.o: time_start.c io.o
+	$(CC) $(CFLAGS) -c $< -o $@
+
+task.o: task.c ../include/task.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 %.o: %.c
